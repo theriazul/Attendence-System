@@ -1,2 +1,2 @@
-# Attendence-System
+# Mini Project: Attendence-System
 This repository contains a Simplified Attendance System developed using only Java. The project is designed to demonstrate fundamental programming concepts such as Object-Oriented Programming (OOP), data structures, and file handling. The primary goal is to provide a straightforward and efficient way to manage student or employee attendance without relying on external libraries or complex frameworks.
