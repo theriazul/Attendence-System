@@ -1,0 +1,259 @@
+import java.util.*;
+
+class SimplifiedAttendanceSystem {
+    static Scanner scanner = new Scanner(System.in);
+    static List<Student> students = new ArrayList<>();
+    static List<Course> courses = new ArrayList<>();
+    static List<Attendance> attendanceRecords = new ArrayList<>();
+
+    public static void main(String[] args) {
+        initializeSampleData();
+        
+        while (true) {
+            System.out.println("\n=== Attendance System ===");
+            System.out.println("1. Admin Login");
+            System.out.println("2. Teacher Login");
+            System.out.println("3. Student Login");
+            System.out.println("4. Exit");
+            System.out.print("Choose option: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+            
+            switch (choice) {
+                case 1 -> adminMenu();
+                case 2 -> teacherMenu();
+                case 3 -> studentMenu();
+                case 4 -> {
+                    System.out.println("Exiting...");
+                    System.exit(0);
+                }
+                default -> System.out.println("Invalid choice!");
+            }
+        }
+    }
+
+    // Admin functions
+    static void adminMenu() {
+        while (true) {
+            System.out.println("\n=== Admin Menu ===");
+            System.out.println("1. Add Student");
+            System.out.println("2. Add Course");
+            System.out.println("3. View All Students");
+            System.out.println("4. Back to Main Menu");
+            System.out.print("Choose option: ");
+            
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+            
+            switch (choice) {
+                case 1 -> addStudent();
+                case 2 -> addCourse();
+                case 3 -> viewAllStudents();
+                case 4 -> { return; }
+                default -> System.out.println("Invalid choice!");
+            }
+        }
+    }
+
+    static void addStudent() {
+        System.out.print("Enter Student ID: ");
+        String id = scanner.nextLine();
+        System.out.print("Enter Student Name: ");
+        String name = scanner.nextLine();
+        
+        System.out.println("Available Courses:");
+        for (Course course : courses) {
+            System.out.println("- " + course.name);
+        }
+        
+        System.out.print("Enter courses (comma-separated): ");
+        String[] courseNames = scanner.nextLine().split(",");
+        List<String> enrolledCourses = new ArrayList<>();
+        for (String courseName : courseNames) {
+            enrolledCourses.add(courseName.trim());
+        }
+        
+        students.add(new Student(id, name, enrolledCourses));
+        System.out.println("Student added successfully!");
+    }
+
+    static void addCourse() {
+        System.out.print("Enter Course Name: ");
+        String name = scanner.nextLine();
+        courses.add(new Course(name));
+        System.out.println("Course added successfully!");
+    }
+
+    static void viewAllStudents() {
+        System.out.println("\nAll Students:");
+        for (Student student : students) {
+            System.out.println(student.id + ": " + student.name + " - Courses: " + student.courses);
+        }
+    }
+
+    // Teacher functions
+    static void teacherMenu() {
+        System.out.println("\nTeacher Options:");
+        System.out.println("1. Mark Attendance");
+        System.out.println("2. View Records");
+        System.out.println("3. Back to Main");
+        System.out.print("Choose: ");
+        
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+        
+        switch (choice) {
+            case 1 -> markAttendance();
+            case 2 -> viewRecords();
+            case 3 -> { return; }
+            default -> System.out.println("Invalid choice!");
+        }
+    }
+
+    static void markAttendance() {
+        System.out.println("\nAvailable Courses:");
+        for (int i = 0; i < courses.size(); i++) {
+            System.out.println((i + 1) + ". " + courses.get(i).name);
+        }
+        
+        System.out.print("Select course: ");
+        int courseIndex = scanner.nextInt() - 1;
+        scanner.nextLine();
+        
+        Course course = courses.get(courseIndex);
+        System.out.println("\nMarking attendance for " + course.name);
+        
+        for (Student student : students) {
+            if (student.courses.contains(course.name)) {
+                System.out.print("Is " + student.name + " present? (Y/N): ");
+                String present = scanner.nextLine().toUpperCase();
+                attendanceRecords.add(new Attendance(student.id, course.name, present.equals("Y")));
+            }
+        }
+        System.out.println("Attendance recorded!");
+    }
+
+    static void viewRecords() {
+        System.out.println("\nAttendance Records:");
+        for (Attendance record : attendanceRecords) {
+            System.out.println(getStudentName(record.studentId) + " - " + 
+                             record.course + ": " + 
+                             (record.present ? "Present" : "Absent"));
+        }
+    }
+
+    // Student functions
+    static void studentMenu() {
+        System.out.print("\nEnter your student ID: ");
+        String id = scanner.nextLine();
+        
+        Student student = findStudent(id);
+        if (student == null) {
+            System.out.println("Student not found!");
+            return;
+        }
+        
+        System.out.println("\nWelcome, " + student.name);
+        System.out.println("Your attendance:");
+        
+        for (Attendance record : attendanceRecords) {
+            if (record.studentId.equals(id)) {
+                System.out.println(record.course + ": " + 
+                                 (record.present ? "Present" : "Absent"));
+            }
+        }
+        
+        // Calculate attendance percentage
+        int total = 0, present = 0;
+        for (Attendance record : attendanceRecords) {
+            if (record.studentId.equals(id)) {
+                total++;
+                if (record.present) present++;
+            }
+        }
+        
+        if (total > 0) {
+            double percentage = (present * 100.0) / total;
+            System.out.printf("\nOverall attendance: %.1f%%\n", percentage);
+            
+            if (percentage < 75) {
+                System.out.println("WARNING: Your attendance is below 75%!");
+            }
+        }
+    }
+
+    // Helper methods
+    static String getStudentName(String id) {
+        for (Student s : students) {
+            if (s.id.equals(id)) return s.name;
+        }
+        return "Unknown";
+    }
+
+    static Student findStudent(String id) {
+        for (Student s : students) {
+            if (s.id.equals(id)) return s;
+        }
+        return null;
+    }
+
+    static void initializeSampleData() {
+        // Sample courses
+        courses.add(new Course("Math101"));
+        courses.add(new Course("English101"));
+        courses.add(new Course("Bns101"));
+        courses.add(new Course("Math102"));
+        courses.add(new Course("Math321"));
+        
+        // Sample students
+        students.add(new Student("232-15-236", "noman", Arrays.asList("Math321", "English101")));
+        students.add(new Student("232-15-186", "sakib", Arrays.asList("Math101", "English101")));
+        students.add(new Student("232-15-555", "Fahim", Arrays.asList("Math102", "English101")));
+        students.add(new Student("232-15-625", "Jibon", Arrays.asList("Bns101", "English101")));
+        students.add(new Student("232-15-784", "Shakil",Arrays.asList("Math101", "English101")));
+        students.add(new Student("232-15-556", "himel", Arrays.asList("Math101", "English101")));
+        students.add(new Student("232-15-557", "Rimel", Arrays.asList("Math102", "English101")));
+        
+        // Sample attendance
+        attendanceRecords.add(new Attendance("232-15-186", "Math101", true));
+        attendanceRecords.add(new Attendance("232-15-555", "Math101", true));
+        attendanceRecords.add(new Attendance("232-15-625", "Bns101", true));
+        attendanceRecords.add(new Attendance("232-15-784", "English101", false));
+        attendanceRecords.add(new Attendance("232-15-556", "Math101", true));
+        attendanceRecords.add(new Attendance("232-15-557", "Bns101", true));
+        attendanceRecords.add(new Attendance("232-15-236", "English101", false));
+    }
+}
+
+class Student {
+    String id;
+    String name;
+    List<String> courses;
+
+    Student(String id, String name, List<String> courses) {
+        this.id = id;
+        this.name = name;
+        this.courses = courses;
+    }
+}
+
+class Course {
+    String name;
+
+    Course(String name) {
+        this.name = name;
+    }
+}
+
+class Attendance {
+    String studentId;
+    String course;
+    boolean present;
+
+    Attendance(String studentId, String course, boolean present) {
+        this.studentId = studentId;
+        this.course = course;
+        this.present = present;
+    }
+}
